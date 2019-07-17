@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
-const password = fs.readFileSync('./pass');
-const email = fs.readFileSync('./email');
+const password = fs.readFileSync('./pass').toString();
+const email = fs.readFileSync('./email').toString();
 
 (async () => {
   const browser = await puppeteer.launch({headless: false});
@@ -17,14 +17,17 @@ const email = fs.readFileSync('./email');
   await page.goto('https://www.kickstarter.com/projects/1987199519/rens-the-totally-waterproof-sneaker-made-from-coffee/backers/report/index')
 
   await page.click('tr.backer_row:first-child');
-  await page.waitFor(() => {
-    const modalDisplay = document.querySelector('.modal_dialog.backer_info').style.display;
-    console.log(modalDisplay);
-    return modalDisplay !== 'none';
-  });
 
-  const shippingElement = await page.$('.info_panel.panel');
-  shippingElement.$eval('*', (node) => console.log(node.innerText));
+  await page.waitForSelector('.info_panel.panel', {
+    visible: true
+  })
+
+  const content = await page.$eval('.info_panel.panel', (node) => node.innerText);
+  // console.log(content);
+  const country = content.match(/Shipping: .+/g)[0].split(' ')[1];
+  console.log(country);
+
+
 
   // await browser.close();
 })();
